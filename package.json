@@ -1,0 +1,34 @@
+{
+  "name": "homey-pro-api",
+  "version": "0.1.0",
+  "description": "TypeScript client for Homey Pro API with Claude AI integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "homey",
+    "homey-pro",
+    "home-automation",
+    "smart-home"
+  ],
+  "author": "Per Norrfors",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "dotenv": "^17.3.1",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsx": "^4.21.0",
+    "vitest": "^4.0.18"
+  }
+}
