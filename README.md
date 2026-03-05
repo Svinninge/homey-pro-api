@@ -102,9 +102,24 @@ $ npm start -- devices
 With `ANTHROPIC_API_KEY` set in `.env.local`, you can control Homey with natural language:
 
 ```bash
-npm start -- ask "Turn off all lights in the living room"
+# Query device status
+npm start -- ask "Which lights are currently on?"
 npm start -- ask "What devices are in the garage?"
+npm start -- ask "Show me all thermostats and their temperatures"
+
+# Control devices
+npm start -- ask "Turn off all lights in the garage"
+npm start -- ask "Dim the living room to 10%"
+npm start -- ask "Set the hallway lights to 50% brightness"
+npm start -- ask "Turn on the outdoor lights"
+
+# Flows and automation
+npm start -- ask "What flows are available?"
 npm start -- ask "Trigger the goodnight flow"
+
+# Complex queries
+npm start -- ask "Are there any open doors or windows?"
+npm start -- ask "Give me an overview of energy consumption devices"
 ```
 
 Claude uses tool-use to autonomously decide which API calls to make.
