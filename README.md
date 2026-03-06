@@ -1,41 +1,58 @@
 # Homey Pro API
 
-TypeScript client and Claude AI agent for controlling a [Homey Pro](https://homey.app/en-us/homey-pro/) smart home hub.
+TypeScript client and Claude AI agent for controlling a [Homey Pro](https://homey.app/en-us/homey-pro/) smart home hub, with a web-based chat UI and Docker deployment.
 
 ## Features
 
+- **Web Chat UI** — Browser-based chat interface for natural language smart home control
 - **OAuth2 Authentication** — Full 3-token chain (cloud token → delegation JWT → Homey session) with automatic token refresh
 - **REST API Client** — Lightweight client for the Homey Pro local HTTP API (devices, zones, flows)
 - **Claude AI Agent** — Natural language device control using Claude's tool-use capability
 - **CLI** — Command-line interface for quick testing and interaction
+- **Docker** — Single-command deployment with docker compose
 
 ## Architecture
 
 ```
 src/
-├── index.ts          # Public library exports
+├── server.ts         # Express web server (chat UI, OAuth2 login)
+├── auth-web.ts       # OAuth2 flow adapted for web callbacks
 ├── cli.ts            # CLI entry point (ping, devices, zones, flows, ask)
 ├── config.ts         # Environment config loader (.env.local)
 ├── auth.ts           # OAuth2 flow: authorize, token exchange, delegation, session
 ├── token-store.ts    # Persist and refresh tokens (.tokens.json)
 ├── homey-client.ts   # REST client for Homey Pro local API
 ├── claude-tools.ts   # Tool definitions for Claude API tool-use
-└── agent.ts          # Agentic loop — Claude controls Homey autonomously
+├── agent.ts          # Agentic loop — Claude controls Homey autonomously
+└── index.ts          # Public library exports
+
+public/
+└── index.html        # Chat UI (login screen + chat interface)
 ```
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 18+ (or Docker)
 - A Homey Pro on your local network
 - A Homey Web API Client (OAuth2) — create one at [developer.athom.com](https://developer.athom.com)
+- An Anthropic API key for Claude agent mode
 
-## Setup
-
-### 1. Install dependencies
+## Quick Start with Docker
 
 ```bash
 git clone https://github.com/Svinninge/homey-pro-api.git
 cd homey-pro-api
+cp .env.example .env.local   # Edit with your credentials
+docker compose up -d
+```
+
+Open `http://localhost:3000`, click **Login with Homey**, and start chatting.
+
+## Setup (Manual)
+
+### 1. Install dependencies
+
+```bash
 npm install
 npm run build
 ```
@@ -52,29 +69,50 @@ cp .env.example .env.local
 # Required
 HOMEY_CLIENT_ID=your-oauth2-client-id
 HOMEY_CLIENT_SECRET=your-oauth2-client-secret
-HOMEY_ADDRESS=http://192.168.1.xx    # Your Homey Pro local IP
-
-# Optional (only for Claude agent mode)
+HOMEY_ADDRESS=http://192.168.1.xx
 ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Optional
+# WEB_PORT=3000
+# SESSION_SECRET=your-random-secret
 ```
 
-### 3. Add callback URL
+### 3. Add callback URLs
 
-In your Homey Web API Client settings at [developer.athom.com](https://developer.athom.com), add this callback URL:
+In your Homey Web API Client settings at [developer.athom.com](https://developer.athom.com), add these callback URLs:
 
 ```
-http://localhost:3456/callback
+http://localhost:3456/callback              # For CLI auth
+http://localhost:3000/auth/callback          # For web UI (local)
+http://192.168.1.88:3000/auth/callback      # For web UI (LAN access)
 ```
 
-### 4. Authorize
+### 4. Start
 
+**Web UI:**
 ```bash
-npm start -- auth
+npm run server
 ```
 
-This opens your browser for Homey login. After authorization, tokens are saved to `.tokens.json` (gitignored). You only need to do this once — tokens refresh automatically.
+**CLI only:**
+```bash
+npm start -- auth      # First-time authorization
+npm start -- devices   # List devices
+```
 
 ## Usage
+
+### Web Chat UI
+
+Start the server and open `http://localhost:3000` in your browser:
+
+```bash
+npm run server          # Production
+npm run server:dev      # Development (auto-reload)
+docker compose up -d    # Docker
+```
+
+Log in with your Homey account, then ask anything in natural language.
 
 ### CLI Commands
 
@@ -83,23 +121,10 @@ npm start -- ping          # Check connection to Homey Pro
 npm start -- devices       # List all devices (name, class, id)
 npm start -- zones         # List all zones
 npm start -- flows         # List all flows
-npm start -- ask "query"   # Ask Claude to control Homey (requires ANTHROPIC_API_KEY)
+npm start -- ask "query"   # Ask Claude to control Homey
 ```
 
-### Example output
-
-```
-$ npm start -- devices
-  Dörrlås Entre (lock) - 03f4636d-7554-4525-b77f-32d4e3a00a2f
-  Golvvärme WC BV (thermostat) - 0e76ba3f-16d5-4a61-8e65-5a4a41cb70b6
-  Laddbox (evcharger) - 1345bf81-85df-4254-a1b2-af1029dbd057
-  ...
-  Total: 78 devices
-```
-
-### Claude Agent Mode
-
-With `ANTHROPIC_API_KEY` set in `.env.local`, you can control Homey with natural language:
+### Claude Agent Examples
 
 ```bash
 # Query device status
@@ -122,9 +147,7 @@ npm start -- ask "Are there any open doors or windows?"
 npm start -- ask "Give me an overview of energy consumption devices"
 ```
 
-Claude uses tool-use to autonomously decide which API calls to make.
-
-### As a library
+### As a Library
 
 ```typescript
 import { HomeyClient, getValidSession, loadConfig } from "homey-pro-api";
@@ -151,6 +174,17 @@ The Homey API uses a 3-step token chain:
 
 The session token is used for all local API calls. When tokens expire, they refresh automatically via the stored refresh token.
 
+## Docker
+
+```bash
+docker compose up -d          # Start
+docker compose down            # Stop
+docker compose up --build -d   # Rebuild after changes
+docker logs homey-chat         # View logs
+```
+
+The container runs on port 3000, connects to Homey Pro on the LAN, and persists OAuth2 tokens in a `./data/` volume.
+
 ## Available Scopes
 
 The OAuth2 client should have these scopes configured:
@@ -173,10 +207,13 @@ The OAuth2 client should have these scopes configured:
 ```
 homey-pro-api/
 ├── src/                  # TypeScript source
+├── public/               # Web chat UI (static HTML)
 ├── dist/                 # Compiled JavaScript (gitignored)
+├── data/                 # Token persistence for Docker
 ├── .env.local            # Secrets (gitignored)
 ├── .env.example          # Template for .env.local
-├── .tokens.json          # OAuth2 tokens (gitignored)
+├── Dockerfile            # Multi-stage Docker build
+├── docker-compose.yml    # Docker deployment config
 ├── CLAUDE.md             # Claude Code project instructions
 ├── package.json
 └── tsconfig.json
@@ -187,7 +224,9 @@ homey-pro-api/
 | Command | Description |
 |---------|-------------|
 | `npm run build` | Compile TypeScript to `dist/` |
-| `npm run dev` | Run CLI with tsx (no build needed) |
+| `npm run server` | Start web chat server |
+| `npm run server:dev` | Start server with auto-reload |
+| `npm run dev` | Run CLI with tsx |
 | `npm start` | Run compiled CLI |
 | `npm test` | Run tests with vitest |
 

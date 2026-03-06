@@ -104,6 +104,10 @@ export async function getValidSession(
   return sessionToken;
 }
 
+// ── Exported helpers (reused by auth-web.ts) ─────────────────
+
+export { exchangeCodeForTokens, getDelegationToken, createHomeySession, refreshAccessToken };
+
 // ── Internal helpers ──────────────────────────────────────────
 
 /** Start a local server and open the browser for authorization */

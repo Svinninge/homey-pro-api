@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homey Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1117;
+      color: #e1e4e8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+    header h1 span { color: #e1e4e8; }
+    .logout-btn {
+      background: none;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .logout-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+    /* ── Login screen ───────────────────── */
+    .login-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+    .login-screen h2 { font-size: 28px; color: #58a6ff; }
+    .login-screen p { color: #8b949e; font-size: 15px; }
+    .login-btn {
+      background: #238636;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .login-btn:hover { background: #2ea043; }
+
+    /* ── Chat area ──────────────────────── */
+    .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: #1f6feb;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant {
+      align-self: flex-start;
+      background: #1c2028;
+      border: 1px solid #30363d;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* ── Markdown inside messages ────────── */
+    .message.assistant table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .message.assistant th, .message.assistant td {
+      border: 1px solid #30363d;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .message.assistant th { background: #161b22; font-weight: 600; }
+    .message.assistant code {
+      background: #161b22;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .message.assistant pre {
+      background: #161b22;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .message.assistant pre code { padding: 0; background: none; }
+    .message.assistant ul, .message.assistant ol { padding-left: 20px; margin: 6px 0; }
+    .message.assistant p { margin: 4px 0; }
+    .message.assistant strong { color: #58a6ff; }
+
+    /* ── Loading indicator ──────────────── */
+    .loading {
+      align-self: flex-start;
+      padding: 12px 20px;
+      color: #8b949e;
+      font-size: 14px;
+    }
+    .loading .dots::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+    @keyframes dots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+    }
+
+    /* ── Input bar ──────────────────────── */
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      padding: 16px 20px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+    }
+    .input-bar input {
+      flex: 1;
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e1e4e8;
+      font-size: 15px;
+      outline: none;
+    }
+    .input-bar input:focus { border-color: #58a6ff; }
+    .input-bar input::placeholder { color: #484f58; }
+    .send-btn {
+      background: #238636;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .send-btn:hover { background: #2ea043; }
+    .send-btn:disabled { background: #21262d; color: #484f58; cursor: default; }
+
+    /* ── Welcome message ────────────────── */
+    .welcome {
+      text-align: center;
+      color: #484f58;
+      padding: 40px 20px;
+    }
+    .welcome h3 { color: #8b949e; margin-bottom: 8px; font-size: 16px; }
+    .welcome p { font-size: 13px; line-height: 1.8; }
+  </style>
+</head>
+<body>
+
+  <!-- Login screen -->
+  <div id="login-screen" class="login-screen" style="display:none">
+    <h2>🏠 Homey Chat</h2>
+    <p>Control your smart home with natural language</p>
+    <button class="login-btn" onclick="location.href='/auth/login'">Login with Homey</button>
+  </div>
+
+  <!-- Chat screen -->
+  <div id="chat-screen" style="display:none">
+    <header>
+      <h1>🏠 <span>Homey Chat</span></h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    <div class="chat-container">
+      <div class="messages" id="messages">
+        <div class="welcome">
+          <h3>Ask anything about your smart home</h3>
+          <p>
+            "Which lights are on?"<br>
+            "Set the hallway to 30%"<br>
+            "Show all temperatures"<br>
+            "Turn off everything in the garage"
+          </p>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input type="text" id="input" placeholder="Type a message..." autocomplete="off">
+        <button class="send-btn" id="send-btn" onclick="send()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // ── Init ──────────────────────────────────────────
+    async function init() {
+      try {
+        const res = await fetch('/api/session');
+        const data = await res.json();
+        if (data.loggedIn) {
+          showChat();
+        } else {
+          showLogin();
+        }
+      } catch {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('chat-screen').style.display = 'none';
+    }
+
+    function showChat() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display = 'flex';
+      document.getElementById('chat-screen').style.flexDirection = 'column';
+      document.getElementById('chat-screen').style.height = '100vh';
+      inputEl.focus();
+    }
+
+    // ── Send message ──────────────────────────────────
+    async function send() {
+      const message = inputEl.value.trim();
+      if (!message) return;
+
+      // Clear welcome on first message
+      const welcome = messagesEl.querySelector('.welcome');
+      if (welcome) welcome.remove();
+
+      addMessage('user', message);
+      inputEl.value = '';
+      inputEl.disabled = true;
+      sendBtn.disabled = true;
+
+      // Show loading
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'loading';
+      loadingEl.innerHTML = 'Thinking<span class="dots"></span>';
+      messagesEl.appendChild(loadingEl);
+      scrollToBottom();
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        if (res.status === 401) {
+          showLogin();
+          return;
+        }
+
+        const data = await res.json();
+        loadingEl.remove();
+
+        if (data.error) {
+          addMessage('assistant', `Error: ${data.error}`);
+        } else {
+          addMessage('assistant', data.reply);
+        }
+      } catch (err) {
+        loadingEl.remove();
+        addMessage('assistant', 'Connection error. Please try again.');
+      } finally {
+        inputEl.disabled = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+    }
+
+    // ── Render message ────────────────────────────────
+    function addMessage(role, content) {
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+
+      if (role === 'assistant') {
+        div.innerHTML = marked.parse(content);
+      } else {
+        div.textContent = content;
+      }
+
+      messagesEl.appendChild(div);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // ── Logout ────────────────────────────────────────
+    async function logout() {
+      await fetch('/auth/logout', { method: 'POST' });
+      showLogin();
+    }
+
+    // ── Keyboard ──────────────────────────────────────
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    // Boot
+    init();
+  </script>
+</body>
+</html>

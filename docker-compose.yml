@@ -1,0 +1,15 @@
+services:
+  homey-chat:
+    build: .
+    container_name: homey-chat
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - WEB_PORT=3000
+      - TOKEN_FILE_PATH=/app/data/tokens.json
+      - SESSION_SECRET=change-me-to-a-random-string
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

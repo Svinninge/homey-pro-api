@@ -12,7 +12,7 @@ export interface StoredTokens {
   homeyRemoteUrl?: string;
 }
 
-const TOKEN_FILE = join(process.cwd(), ".tokens.json");
+const TOKEN_FILE = process.env.TOKEN_FILE_PATH ?? join(process.cwd(), ".tokens.json");
 
 /** Save tokens to disk (gitignored) */
 export async function saveTokens(tokens: StoredTokens): Promise<void> {

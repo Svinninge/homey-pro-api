@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { config as dotenvConfig } from "dotenv";
 
-dotenvConfig({ path: ".env.local" });
+dotenvConfig({ path: ".env.local", override: true });
 
 export interface OAuth2Config {
   clientId: string;
@@ -17,6 +18,8 @@ export interface AppConfig {
   oauth2: OAuth2Config;
   homeyAddress: string;
   anthropicApiKey?: string;
+  webPort: number;
+  sessionSecret: string;
 }
 
 export function loadConfig(): AppConfig {
@@ -42,5 +45,7 @@ export function loadConfig(): AppConfig {
     },
     homeyAddress: address,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    webPort: parseInt(process.env.WEB_PORT ?? "3000", 10),
+    sessionSecret: process.env.SESSION_SECRET ?? randomUUID(),
   };
 }
