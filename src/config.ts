@@ -20,6 +20,7 @@ export interface AppConfig {
   anthropicApiKey?: string;
   webPort: number;
   sessionSecret: string;
+  baseUrl?: string;
 }
 
 export function loadConfig(): AppConfig {
@@ -47,5 +48,6 @@ export function loadConfig(): AppConfig {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     webPort: parseInt(process.env.WEB_PORT ?? "3000", 10),
     sessionSecret: process.env.SESSION_SECRET ?? randomUUID(),
+    baseUrl: process.env.BASE_URL,
   };
 }

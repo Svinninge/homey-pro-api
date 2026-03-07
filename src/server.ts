@@ -94,9 +94,13 @@ app.get("/api/session", (req, res) => {
   res.json({ loggedIn: isAuthenticated && isAuthCookieValid(req) });
 });
 
+function getCallbackUrl(req: express.Request): string {
+  const base = config.baseUrl ?? `${req.protocol}://${req.get("host")}`;
+  return `${base}/auth/callback`;
+}
+
 app.get("/auth/login", (req, res) => {
-  const callbackUrl = `${req.protocol}://${req.get("host")}/auth/callback`;
-  const authUrl = getAuthorizationUrl(config.oauth2, callbackUrl);
+  const authUrl = getAuthorizationUrl(config.oauth2, getCallbackUrl(req));
   res.redirect(authUrl);
 });
 
@@ -107,11 +111,10 @@ app.get("/auth/callback", async (req, res) => {
     return;
   }
   try {
-    const callbackUrl = `${req.protocol}://${req.get("host")}/auth/callback`;
     await exchangeCodeForSession(
       config.oauth2,
       code,
-      callbackUrl,
+      getCallbackUrl(req),
       config.homeyAddress
     );
     isAuthenticated = true;
