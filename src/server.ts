@@ -1,5 +1,6 @@
 import express from "express";
 import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
@@ -11,6 +12,9 @@ import { loadTokens } from "./token-store.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const config = loadConfig();
+const appVersion = JSON.parse(
+  readFileSync(join(__dirname, "../version.json"), "utf-8")
+).version as string;
 
 if (!config.anthropicApiKey) {
   console.error("ANTHROPIC_API_KEY is required in .env.local for the web server.");
@@ -90,8 +94,37 @@ function requireAuth(
 
 // ── Routes: Auth ──────────────────────────────────────────────
 
+let homeyConnected = false;
+
+async function fetchHomeyInfo(): Promise<void> {
+  try {
+    console.log("  Connecting to Homey...");
+    const tokenFn = () => getValidSession(config.oauth2, config.homeyAddress);
+    const client = new HomeyClient(config.homeyAddress, tokenFn);
+    const ok = await client.ping();
+    if (!ok) throw new Error("Ping failed");
+    homeyConnected = true;
+    console.log(`  Connected to Homey at ${config.homeyAddress}`);
+  } catch (err) {
+    homeyConnected = false;
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("  Failed to connect to Homey:", msg);
+  }
+}
+
+// Fetch Homey info on startup (non-blocking)
+loadTokens().then((tokens) => {
+  if (tokens?.sessionToken) fetchHomeyInfo();
+});
+
 app.get("/api/session", (req, res) => {
-  res.json({ loggedIn: isAuthenticated && isAuthCookieValid(req) });
+  res.json({
+    loggedIn: isAuthenticated && isAuthCookieValid(req),
+    version: appVersion,
+    model: "claude-sonnet-4-6",
+    homeyAddress: config.homeyAddress,
+    homeyConnected,
+  });
 });
 
 function getCallbackUrl(req: express.Request): string {

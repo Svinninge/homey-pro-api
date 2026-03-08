@@ -9,7 +9,8 @@ TypeScript client and Claude AI agent for controlling a [Homey Pro](https://home
 - **REST API Client** — Lightweight client for the Homey Pro local HTTP API (devices, zones, flows)
 - **Claude AI Agent** — Natural language device control using Claude's tool-use capability
 - **CLI** — Command-line interface for quick testing and interaction
-- **Docker** — Single-command deployment with docker compose
+- **Docker + Tailscale** — Deployment with Tailscale VPN networking
+- **Versioning** — Auto-incrementing version shown in the UI header
 
 ## Architecture
 
@@ -43,10 +44,12 @@ public/
 git clone https://github.com/Svinninge/homey-pro-api.git
 cd homey-pro-api
 cp .env.example .env.local   # Edit with your credentials
-docker compose up -d
+docker compose up -d --build
 ```
 
-Open `http://localhost:3000`, click **Login with Homey**, and start chatting.
+The app runs behind Tailscale — access it via the Tailscale IP shown in `tailscale status` (e.g., `http://100.x.x.x:3000`). Click **Login with Homey** and start chatting.
+
+> **Note:** Add `http://<tailscale-ip>:3000/auth/callback` as a redirect URI in your Homey OAuth2 app at [developer.athom.com](https://developer.athom.com).
 
 ## Setup (Manual)
 
@@ -84,7 +87,7 @@ In your Homey Web API Client settings at [developer.athom.com](https://developer
 ```
 http://localhost:3456/callback              # For CLI auth
 http://localhost:3000/auth/callback          # For web UI (local)
-http://192.168.1.88:3000/auth/callback      # For web UI (LAN access)
+http://<tailscale-ip>:3000/auth/callback    # For web UI (Tailscale)
 ```
 
 ### 4. Start
@@ -174,16 +177,26 @@ The Homey API uses a 3-step token chain:
 
 The session token is used for all local API calls. When tokens expire, they refresh automatically via the stored refresh token.
 
-## Docker
+## Docker + Tailscale
+
+The app deploys with a Tailscale sidecar container for secure remote access:
 
 ```bash
-docker compose up -d          # Start
+docker compose up -d --build   # Start / rebuild
 docker compose down            # Stop
-docker compose up --build -d   # Rebuild after changes
-docker logs homey-chat         # View logs
+docker logs homey-chat         # App logs
+docker logs homey-tailscale    # Tailscale logs
+docker exec homey-tailscale tailscale status   # Tailscale network status
 ```
 
-The container runs on port 3000, connects to Homey Pro on the LAN, and persists OAuth2 tokens in a `./data/` volume.
+### Configuration
+
+| Env variable | Description |
+|---|---|
+| `TS_AUTHKEY` | Tailscale auth key (stored in `.env.local`) |
+| `BASE_URL` | OAuth2 redirect base URL, e.g. `http://100.x.x.x:3000` |
+
+The `homey-chat` container shares Tailscale's network (`network_mode: "service:tailscale"`) and is accessible at `http://homey-chat:3000` on the Tailscale network. OAuth2 tokens persist in a `./data/` volume.
 
 ## Available Scopes
 
@@ -212,8 +225,9 @@ homey-pro-api/
 ├── data/                 # Token persistence for Docker
 ├── .env.local            # Secrets (gitignored)
 ├── .env.example          # Template for .env.local
+├── version.json          # App version (auto-incremented on deploy)
 ├── Dockerfile            # Multi-stage Docker build
-├── docker-compose.yml    # Docker deployment config
+├── docker-compose.yml    # Docker + Tailscale deployment config
 ├── CLAUDE.md             # Claude Code project instructions
 ├── package.json
 └── tsconfig.json

@@ -10,8 +10,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0f1117;
-      color: #e1e4e8;
+      background: #1a1a2e;
+      color: #f0f0f0;
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -22,26 +22,33 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 20px;
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
+      padding: 14px 20px;
+      background: #16213e;
+      border-bottom: 2px solid #0f3460;
     }
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
     header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #58a6ff;
+      font-size: 22px;
+      font-weight: 700;
+      color: #7ec8e3;
     }
-    header h1 span { color: #e1e4e8; }
+    header h1 span { color: #f0f0f0; }
+    .header-info {
+      font-size: 13px;
+      color: #b0b0b0;
+    }
+    .header-info span { color: #e0e0e0; font-weight: 500; }
     .logout-btn {
       background: none;
-      border: 1px solid #30363d;
-      color: #8b949e;
-      padding: 6px 12px;
+      border: 2px solid #0f3460;
+      color: #e0e0e0;
+      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 15px;
+      font-weight: 500;
     }
-    .logout-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+    .logout-btn:hover { border-color: #7ec8e3; color: #7ec8e3; }
 
     /* ── Login screen ───────────────────── */
     .login-screen {
@@ -52,17 +59,17 @@
       justify-content: center;
       gap: 24px;
     }
-    .login-screen h2 { font-size: 28px; color: #58a6ff; }
-    .login-screen p { color: #8b949e; font-size: 15px; }
+    .login-screen h2 { font-size: 32px; color: #7ec8e3; }
+    .login-screen p { color: #d0d0d0; font-size: 18px; }
     .login-btn {
       background: #238636;
       color: white;
       border: none;
-      padding: 14px 32px;
+      padding: 16px 36px;
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
     }
     .login-btn:hover { background: #2ea043; }
 
@@ -80,10 +87,10 @@
 
     .message {
       max-width: 85%;
-      padding: 12px 16px;
+      padding: 14px 18px;
       border-radius: 12px;
-      line-height: 1.5;
-      font-size: 14px;
+      line-height: 1.6;
+      font-size: 16px;
     }
     .message.user {
       align-self: flex-end;
@@ -93,8 +100,9 @@
     }
     .message.assistant {
       align-self: flex-start;
-      background: #1c2028;
-      border: 1px solid #30363d;
+      background: #1e2a4a;
+      border: 1px solid #0f3460;
+      color: #f0f0f0;
       border-bottom-left-radius: 4px;
     }
 
@@ -103,22 +111,24 @@
       width: 100%;
       border-collapse: collapse;
       margin: 8px 0;
-      font-size: 13px;
+      font-size: 15px;
     }
     .message.assistant th, .message.assistant td {
-      border: 1px solid #30363d;
-      padding: 6px 10px;
+      border: 1px solid #0f3460;
+      padding: 8px 12px;
       text-align: left;
     }
-    .message.assistant th { background: #161b22; font-weight: 600; }
+    .message.assistant th { background: #16213e; font-weight: 600; color: #e0e0e0; }
+    .message.assistant td { color: #e0e0e0; }
     .message.assistant code {
-      background: #161b22;
+      background: #16213e;
       padding: 2px 6px;
       border-radius: 4px;
-      font-size: 13px;
+      font-size: 15px;
+      color: #e0e0e0;
     }
     .message.assistant pre {
-      background: #161b22;
+      background: #16213e;
       padding: 12px;
       border-radius: 6px;
       overflow-x: auto;
@@ -127,14 +137,14 @@
     .message.assistant pre code { padding: 0; background: none; }
     .message.assistant ul, .message.assistant ol { padding-left: 20px; margin: 6px 0; }
     .message.assistant p { margin: 4px 0; }
-    .message.assistant strong { color: #58a6ff; }
+    .message.assistant strong { color: #7ec8e3; }
 
     /* ── Loading indicator ──────────────── */
     .loading {
       align-self: flex-start;
-      padding: 12px 20px;
-      color: #8b949e;
-      font-size: 14px;
+      padding: 14px 20px;
+      color: #d0d0d0;
+      font-size: 16px;
     }
     .loading .dots::after {
       content: '';
@@ -151,49 +161,49 @@
       display: flex;
       gap: 10px;
       padding: 16px 20px;
-      background: #161b22;
-      border-top: 1px solid #30363d;
+      background: #16213e;
+      border-top: 2px solid #0f3460;
     }
     .input-bar input {
       flex: 1;
-      padding: 12px 16px;
-      background: #0d1117;
-      border: 1px solid #30363d;
+      padding: 14px 18px;
+      background: #1a1a2e;
+      border: 2px solid #0f3460;
       border-radius: 8px;
-      color: #e1e4e8;
-      font-size: 15px;
+      color: #f0f0f0;
+      font-size: 17px;
       outline: none;
     }
-    .input-bar input:focus { border-color: #58a6ff; }
-    .input-bar input::placeholder { color: #484f58; }
+    .input-bar input:focus { border-color: #7ec8e3; }
+    .input-bar input::placeholder { color: #c8c8d0; }
     .send-btn {
       background: #238636;
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 14px 28px;
       border-radius: 8px;
-      font-size: 15px;
+      font-size: 17px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
     }
     .send-btn:hover { background: #2ea043; }
-    .send-btn:disabled { background: #21262d; color: #484f58; cursor: default; }
+    .send-btn:disabled { background: #2a2a3e; color: #606060; cursor: default; }
 
     /* ── Welcome message ────────────────── */
     .welcome {
       text-align: center;
-      color: #484f58;
+      color: #b0b0b0;
       padding: 40px 20px;
     }
-    .welcome h3 { color: #8b949e; margin-bottom: 8px; font-size: 16px; }
-    .welcome p { font-size: 13px; line-height: 1.8; }
+    .welcome h3 { color: #e0e0e0; margin-bottom: 12px; font-size: 20px; }
+    .welcome p { font-size: 16px; line-height: 2; color: #d0d0d0; }
   </style>
 </head>
 <body>
 
   <!-- Login screen -->
   <div id="login-screen" class="login-screen" style="display:none">
-    <h2>🏠 Homey Chat</h2>
+    <h2>Homey Chat</h2>
     <p>Control your smart home with natural language</p>
     <button class="login-btn" onclick="location.href='/auth/login'">Login with Homey</button>
   </div>
@@ -201,7 +211,10 @@
   <!-- Chat screen -->
   <div id="chat-screen" style="display:none">
     <header>
-      <h1>🏠 <span>Homey Chat</span></h1>
+      <div class="header-left">
+        <h1><span>Homey Chat</span></h1>
+        <div class="header-info" id="header-info"></div>
+      </div>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </header>
     <div class="chat-container">
@@ -234,6 +247,13 @@
         const res = await fetch('/api/session');
         const data = await res.json();
         if (data.loggedIn) {
+          const info = document.getElementById('header-info');
+          const parts = [];
+          if (data.version) parts.push(`v${data.version}`);
+          if (data.model) parts.push(data.model);
+          const status = data.homeyConnected ? 'connected' : 'connecting...';
+          if (data.homeyAddress) parts.push(`${data.homeyAddress} [${status}]`);
+          info.textContent = parts.join('  ·  ');
           showChat();
         } else {
           showLogin();
