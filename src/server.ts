@@ -197,6 +197,17 @@ app.post("/api/chat/reset", requireAuth, (_req, res) => {
   res.json({ ok: true });
 });
 
+// ── Routes: README ───────────────────────────────────────────
+
+app.get("/api/readme", (_req, res) => {
+  try {
+    const readme = readFileSync(join(__dirname, "../README.md"), "utf-8");
+    res.json({ content: readme });
+  } catch {
+    res.status(404).json({ error: "README.md not found" });
+  }
+});
+
 // ── SPA fallback ──────────────────────────────────────────────
 
 app.get("/{*path}", (_req, res) => {

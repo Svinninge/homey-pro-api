@@ -15,6 +15,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY public/ ./public/
 COPY version.json ./
+COPY README.md ./
 RUN mkdir -p /app/data
 
 EXPOSE 3000

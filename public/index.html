@@ -197,6 +197,74 @@
     }
     .welcome h3 { color: #e0e0e0; margin-bottom: 12px; font-size: 20px; }
     .welcome p { font-size: 16px; line-height: 2; color: #d0d0d0; }
+
+    /* ── Readme modal ──────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-content {
+      background: #1a1a2e;
+      border: 2px solid #0f3460;
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #e0e0e0;
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #7ec8e3; }
+    .modal-content h1 { font-size: 24px; color: #7ec8e3; margin: 16px 0 8px; }
+    .modal-content h2 { font-size: 20px; color: #7ec8e3; margin: 14px 0 6px; }
+    .modal-content h3 { font-size: 17px; color: #7ec8e3; margin: 12px 0 4px; }
+    .modal-content p { color: #e0e0e0; line-height: 1.7; margin: 6px 0; font-size: 15px; }
+    .modal-content ul, .modal-content ol { padding-left: 22px; margin: 6px 0; color: #e0e0e0; }
+    .modal-content li { margin: 4px 0; line-height: 1.6; font-size: 15px; }
+    .modal-content code {
+      background: #16213e;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+    .modal-content pre {
+      background: #16213e;
+      padding: 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .modal-content pre code { padding: 0; background: none; }
+    .modal-content strong { color: #7ec8e3; }
+    .modal-content a { color: #7ec8e3; text-decoration: underline; }
+    .modal-content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    .modal-content th, .modal-content td {
+      border: 1px solid #0f3460;
+      padding: 8px 12px;
+      text-align: left;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    .modal-content th { background: #16213e; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -216,6 +284,7 @@
         <div class="header-info" id="header-info"></div>
       </div>
       <div style="display:flex; gap:8px;">
+        <button class="logout-btn" onclick="showReadme()">Readme</button>
         <button class="logout-btn" onclick="resetChat()">New chat</button>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
@@ -236,6 +305,14 @@
         <input type="text" id="input" placeholder="Type a message..." autocomplete="off">
         <button class="send-btn" id="send-btn" onclick="send()">Send</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Readme modal -->
+  <div class="modal-overlay" id="readme-modal" onclick="closeReadme(event)">
+    <div class="modal-content" id="readme-content">
+      <button class="modal-close" onclick="closeReadme()">&times;</button>
+      <div id="readme-body">Loading...</div>
     </div>
   </div>
 
@@ -378,6 +455,30 @@
         send();
       }
     });
+
+    // ── Readme modal ────────────────────────────────
+    async function showReadme() {
+      const modal = document.getElementById('readme-modal');
+      const body = document.getElementById('readme-body');
+      modal.classList.add('open');
+      body.innerHTML = 'Loading...';
+      try {
+        const res = await fetch('/api/readme');
+        const data = await res.json();
+        if (data.content) {
+          body.innerHTML = marked.parse(data.content);
+        } else {
+          body.innerHTML = '<p>README not available.</p>';
+        }
+      } catch {
+        body.innerHTML = '<p>Failed to load README.</p>';
+      }
+    }
+
+    function closeReadme(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('readme-modal').classList.remove('open');
+    }
 
     // Boot
     init();
