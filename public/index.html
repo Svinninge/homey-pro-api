@@ -215,7 +215,10 @@
         <h1><span>Homey Chat</span></h1>
         <div class="header-info" id="header-info"></div>
       </div>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <div style="display:flex; gap:8px;">
+        <button class="logout-btn" onclick="resetChat()">New chat</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
     </header>
     <div class="chat-container">
       <div class="messages" id="messages">
@@ -344,6 +347,22 @@
 
     function scrollToBottom() {
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // ── Reset chat ─────────────────────────────────────
+    async function resetChat() {
+      await fetch('/api/chat/reset', { method: 'POST' });
+      messagesEl.innerHTML = `
+        <div class="welcome">
+          <h3>Ask anything about your smart home</h3>
+          <p>
+            "Which lights are on?"<br>
+            "Set the hallway to 30%"<br>
+            "Show all temperatures"<br>
+            "Turn off everything in the garage"
+          </p>
+        </div>`;
+      inputEl.focus();
     }
 
     // ── Logout ────────────────────────────────────────

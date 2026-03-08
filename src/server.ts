@@ -5,7 +5,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { HomeyClient } from "./homey-client.js";
-import { HomeyAgent } from "./agent.js";
+import { HomeyAgent, type AgentResult } from "./agent.js";
+import type Anthropic from "@anthropic-ai/sdk";
 import { getValidSession } from "./auth.js";
 import { getAuthorizationUrl, exchangeCodeForSession } from "./auth-web.js";
 import { loadTokens } from "./token-store.js";
@@ -167,6 +168,9 @@ app.post("/auth/logout", (_req, res) => {
 
 // ── Routes: Chat ──────────────────────────────────────────────
 
+// Conversation history (single-user, in-memory)
+let chatHistory: Anthropic.MessageParam[] = [];
+
 app.post("/api/chat", requireAuth, async (req, res) => {
   const { message } = req.body;
   if (!message || typeof message !== "string") {
@@ -178,13 +182,19 @@ app.post("/api/chat", requireAuth, async (req, res) => {
     const tokenFn = () => getValidSession(config.oauth2, config.homeyAddress);
     const client = new HomeyClient(config.homeyAddress, tokenFn);
     const agent = new HomeyAgent(client, config.anthropicApiKey!);
-    const reply = await agent.run(message);
-    res.json({ reply });
+    const result: AgentResult = await agent.run(message, chatHistory);
+    chatHistory = result.history;
+    res.json({ reply: result.reply });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("Chat error:", msg);
     res.status(500).json({ error: "Failed to process message." });
   }
+});
+
+app.post("/api/chat/reset", requireAuth, (_req, res) => {
+  chatHistory = [];
+  res.json({ ok: true });
 });
 
 // ── SPA fallback ──────────────────────────────────────────────
