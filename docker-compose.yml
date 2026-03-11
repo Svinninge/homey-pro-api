@@ -24,7 +24,7 @@ services:
       - WEB_PORT=3000
       - TOKEN_FILE_PATH=/app/data/tokens.json
       - SESSION_SECRET=change-me-to-a-random-string
-      - BASE_URL=https://homey-chat.tiffany-atlas.ts.net
+      - BASE_URL=  # Set to https://<hostname>.ts.net in .env.local
     volumes:
       - ./data:/app/data
     depends_on:

@@ -194,7 +194,7 @@ docker exec homey-tailscale tailscale status   # Tailscale network status
 | Env variable | Description |
 |---|---|
 | `TS_AUTHKEY` | Tailscale auth key (stored in `.env.local`) |
-| `BASE_URL` | OAuth2 redirect base URL, e.g. `https://homey-chat.tiffany-atlas.ts.net` |
+| `BASE_URL` | OAuth2 redirect base URL, e.g. `https://homey-chat.example.ts.net` |
 | `TS_SERVE_CONFIG` | Path to Tailscale Serve config (set automatically via volume mount) |
 
 The `homey-chat` container shares Tailscale's network (`network_mode: "service:tailscale"`). Tailscale Serve proxies HTTPS (port 443) to the app on port 3000 — accessible at `https://<hostname>.ts.net` with a valid TLS certificate. OAuth2 tokens persist in a `./data/` volume.
