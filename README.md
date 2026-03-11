@@ -9,7 +9,7 @@ TypeScript client and Claude AI agent for controlling a [Homey Pro](https://home
 - **REST API Client** — Lightweight client for the Homey Pro local HTTP API (devices, zones, flows)
 - **Claude AI Agent** — Natural language device control using Claude's tool-use capability
 - **CLI** — Command-line interface for quick testing and interaction
-- **Docker + Tailscale** — Deployment with Tailscale VPN networking
+- **Docker + Tailscale** — Deployment with Tailscale VPN networking and automatic HTTPS via Tailscale Serve
 - **Versioning** — Auto-incrementing version shown in the UI header
 
 ## Architecture
@@ -47,9 +47,9 @@ cp .env.example .env.local   # Edit with your credentials
 docker compose up -d --build
 ```
 
-The app runs behind Tailscale — access it via the Tailscale IP shown in `tailscale status` (e.g., `http://100.x.x.x:3000`). Click **Login with Homey** and start chatting.
+The app runs behind Tailscale with automatic HTTPS. Access it at `https://<hostname>.ts.net` (your Tailscale machine name). Click **Login with Homey** and start chatting.
 
-> **Note:** Add `http://<tailscale-ip>:3000/auth/callback` as a redirect URI in your Homey OAuth2 app at [developer.athom.com](https://developer.athom.com).
+> **Note:** Add `https://<hostname>.ts.net/auth/callback` as a redirect URI in your Homey OAuth2 app at [developer.athom.com](https://developer.athom.com).
 
 ## Setup (Manual)
 
@@ -87,7 +87,7 @@ In your Homey Web API Client settings at [developer.athom.com](https://developer
 ```
 http://localhost:3456/callback              # For CLI auth
 http://localhost:3000/auth/callback          # For web UI (local)
-http://<tailscale-ip>:3000/auth/callback    # For web UI (Tailscale)
+https://<hostname>.ts.net/auth/callback     # For web UI (Tailscale HTTPS)
 ```
 
 ### 4. Start
@@ -194,9 +194,10 @@ docker exec homey-tailscale tailscale status   # Tailscale network status
 | Env variable | Description |
 |---|---|
 | `TS_AUTHKEY` | Tailscale auth key (stored in `.env.local`) |
-| `BASE_URL` | OAuth2 redirect base URL, e.g. `http://100.x.x.x:3000` |
+| `BASE_URL` | OAuth2 redirect base URL, e.g. `https://homey-chat.tiffany-atlas.ts.net` |
+| `TS_SERVE_CONFIG` | Path to Tailscale Serve config (set automatically via volume mount) |
 
-The `homey-chat` container shares Tailscale's network (`network_mode: "service:tailscale"`) and is accessible at `http://homey-chat:3000` on the Tailscale network. OAuth2 tokens persist in a `./data/` volume.
+The `homey-chat` container shares Tailscale's network (`network_mode: "service:tailscale"`). Tailscale Serve proxies HTTPS (port 443) to the app on port 3000 — accessible at `https://<hostname>.ts.net` with a valid TLS certificate. OAuth2 tokens persist in a `./data/` volume.
 
 ## Available Scopes
 

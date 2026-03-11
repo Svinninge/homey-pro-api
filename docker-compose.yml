@@ -8,8 +8,10 @@ services:
     environment:
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=true
+      - TS_SERVE_CONFIG=/config/tailscale-serve.json
     volumes:
       - tailscale-state:/var/lib/tailscale
+      - ./tailscale-serve.json:/config/tailscale-serve.json:ro
     restart: unless-stopped
 
   homey-chat:
@@ -22,6 +24,7 @@ services:
       - WEB_PORT=3000
       - TOKEN_FILE_PATH=/app/data/tokens.json
       - SESSION_SECRET=change-me-to-a-random-string
+      - BASE_URL=https://homey-chat.tiffany-atlas.ts.net
     volumes:
       - ./data:/app/data
     depends_on:

@@ -60,6 +60,7 @@ function setAuthCookie(res: express.Response): void {
   const value = sign("authenticated");
   res.cookie(COOKIE_NAME, value, {
     httpOnly: true,
+    secure: true,
     sameSite: "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
