@@ -32,7 +32,7 @@ TypeScript client, web chat UI, and Claude AI agent for controlling a Homey Pro 
 - Tailscale sidecar container required (see `docker-compose.yml`)
 - `homey-chat` shares Tailscale network via `network_mode: "service:tailscale"`
 - Uses `TS_USERSPACE=true` for Docker Desktop on Windows
-- Increment version in `version.json` before each deploy
+- Versioning: See global rules at `C:\Users\perno\OneDrive\Dokument\Claude\memory\versioning_rules.md`
 
 ## Secrets
 
