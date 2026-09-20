@@ -13,20 +13,26 @@
     "server:dev": "tsx src/server.ts",
     "lint": "eslint src/",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mcp": "node dist/mcp.js",
+    "mcp:dev": "tsx src/mcp.ts"
   },
   "keywords": [
+    "home-automation",
     "homey",
     "homey-pro",
-    "home-automation",
+    "mcp",
+    "model-context-protocol",
     "smart-home"
   ],
   "author": "Per Norrfors",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^17.3.1",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
@@ -34,5 +40,8 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "bin": {
+    "homey-mcp": "dist/mcp.js"
   }
 }

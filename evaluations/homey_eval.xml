@@ -1,0 +1,50 @@
+<!-- File version: v0.01 -->
+<!-- Description: Evaluation questions for the homey MCP server (read-only tools only) -->
+<!-- Author: Per Norrfors -->
+<!-- Created: 2026-09-20 -->
+<!-- Modified: 2026-09-20 - Initial evaluation suite (Claude) -->
+<!-- Measured against the Homey Pro in Svinninge on 2026-09-20. Every answer comes from -->
+<!-- homey_list_zones, homey_list_devices, homey_get_device or homey_list_flows; no tool that -->
+<!-- changes the house is needed. Re-measure after a reorganisation of zones, devices or flows. -->
+<evaluation>
+  <qa_pair>
+    <question>Vilken zon är husets rotzon, den som inte har någon förälder?</question>
+    <answer>Svinninge</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Hur många zoner finns det i huset?</question>
+    <answer>16</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Hur många zoner heter Kontor?</question>
+    <answer>2</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Vilken är den fullständiga sökvägen till zonen Uterum?</question>
+    <answer>Svinninge &gt; Bottenvåning &gt; Uterum</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>I vilken zon sitter enheten Laddbox? Svara med hela zonsökvägen.</question>
+    <answer>Svinninge &gt; Utomhus</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Två enheter har namn som börjar med "Luftvärmepump". Vad heter de? Svara i bokstavsordning, separerade med komma.</question>
+    <answer>Luftvärmepump Nere, Luftvärmepump Uppe</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Vilken capability styr låset på enheten "Dörrlås Entre"?</question>
+    <answer>locked</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Hur många enheter finns i zonen Vind?</question>
+    <answer>0</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Vilken enhet rapporterar elpriset?</question>
+    <answer>Elpris Korallstigen 5</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Är flödet "Belysning Ute" ett standardflöde eller ett avancerat flöde?</question>
+    <answer>avancerat</answer>
+  </qa_pair>
+</evaluation>

@@ -1,3 +1,9 @@
+// File version: v0.02
+// Description: Lightweight REST client for the Homey Pro local API
+// Author: Per Norrfors
+// Created: 2026-03-14
+// Modified: 2026-09-20 - Zone parents, advanced flows and a flow kind, for the MCP surface (Claude)
+
 /** Generic Homey API response wrapper */
 export interface HomeyDevice {
   id: string;
@@ -7,6 +13,21 @@ export interface HomeyDevice {
   available: boolean;
   capabilities: string[];
   capabilitiesObj: Record<string, CapabilityValue>;
+}
+
+/** A zone (room), as the local API reports it: `parent` is null for the root zone. */
+export interface HomeyZone {
+  id: string;
+  name: string;
+  parent?: string | null;
+}
+
+/** A flow, standard or advanced. `kind` is ours — the API answers per endpoint. */
+export interface HomeyFlow {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  broken?: boolean;
 }
 
 export interface CapabilityValue {
@@ -105,21 +126,37 @@ export class HomeyClient {
 
   // ── Zones ─────────────────────────────────────────────────────
 
-  /** Get all zones */
-  async getZones(): Promise<Record<string, { id: string; name: string }>> {
+  /** Get all zones. `parent` is what makes a zone path ("Svinninge > Övervåning > Kontor"). */
+  async getZones(): Promise<Record<string, HomeyZone>> {
     return this.get("manager/zones/zone/");
   }
 
   // ── Flows ─────────────────────────────────────────────────────
 
-  /** Get all flows */
-  async getFlows(): Promise<Record<string, { id: string; name: string; enabled: boolean }>> {
+  /** Get all standard flows. Advanced flows live behind their own endpoint. */
+  async getFlows(): Promise<Record<string, HomeyFlow>> {
     return this.get("manager/flow/flow/");
   }
 
-  /** Trigger a flow by ID */
+  /**
+   * Get all advanced flows (the canvas ones).
+   *
+   * Half of this house's flows are advanced, and `manager/flow/flow/` does not
+   * list a single one of them — asking only that endpoint makes "Belysning Ute"
+   * look like it does not exist.
+   */
+  async getAdvancedFlows(): Promise<Record<string, HomeyFlow>> {
+    return this.get("manager/flow/advancedflow/");
+  }
+
+  /** Trigger a standard flow by ID */
   async triggerFlow(id: string): Promise<void> {
     await this.post(`manager/flow/flow/${id}/trigger`);
+  }
+
+  /** Trigger an advanced flow by ID */
+  async triggerAdvancedFlow(id: string): Promise<void> {
+    await this.post(`manager/flow/advancedflow/${id}/trigger`);
   }
 
   // ── System ────────────────────────────────────────────────────

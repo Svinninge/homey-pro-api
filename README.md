@@ -4,6 +4,7 @@ TypeScript client and Claude AI agent for controlling a [Homey Pro](https://home
 
 ## Features
 
+- **MCP server** — Homey Pro as tools for Claude Code / Claude Desktop over stdio (`npm run mcp`)
 - **Web Chat UI** — Browser-based chat interface for natural language smart home control
 - **OAuth2 Authentication** — Full 3-token chain (cloud token → delegation JWT → Homey session) with automatic token refresh
 - **REST API Client** — Lightweight client for the Homey Pro local HTTP API (devices, zones, flows)
@@ -23,6 +24,8 @@ src/
 ├── auth.ts           # OAuth2 flow: authorize, token exchange, delegation, session
 ├── token-store.ts    # Persist and refresh tokens (.tokens.json)
 ├── homey-client.ts   # REST client for Homey Pro local API
+├── mcp.ts            # MCP server over stdio: the tool contract and its annotations
+├── mcp-format.ts     # Pure shaping: pagination, zone paths, device summaries
 ├── claude-tools.ts   # Tool definitions for Claude API tool-use
 ├── agent.ts          # Agentic loop — Claude controls Homey autonomously
 └── index.ts          # Public library exports
@@ -163,6 +166,57 @@ const devices = await client.getDevices();
 const zones = await client.getZones();
 await client.setCapability(deviceId, "onoff", true);
 ```
+
+## MCP server
+
+The same client and OAuth chain, exposed as MCP tools so Claude Code and Claude Desktop can reach
+the house directly — no chat UI in between.
+
+```bash
+npm run build
+npm run mcp          # stdio; a client starts this for you
+npm run mcp:dev      # same, straight from TypeScript
+```
+
+Register it on this computer (needs `.env.local` and one `npm start -- auth` first, so
+`.tokens.json` exists):
+
+```bash
+claude mcp add homey -s user -- node "C:\Users\perno\homey-pro-api\dist\mcp.js"
+```
+
+The Homey is only reached on the first tool call that needs it, so a client can list the tools on a
+machine that has never run the OAuth flow.
+
+| Tool | What it does | Annotation |
+|---|---|---|
+| `homey_list_zones` | Zones as a tree: id, name, full path, parent, device count | `readOnly` |
+| `homey_list_devices` | One page of devices — what they are and can do; filter by zone, class, name or capability | `readOnly` |
+| `homey_get_device` | One device with its current capability values | `readOnly` |
+| `homey_set_capability` | Set one capability (onoff, dim, target_temperature, locked) | **`destructive`** |
+| `homey_list_flows` | One page of flows, **both** standard and advanced | `readOnly` |
+| `homey_run_flow` | Start a flow; `kind` must match what the list reported | **`destructive`**, not idempotent |
+| `homey_system_info` | Homey's own version, uptime, memory | `readOnly` |
+
+Three things this surface does that the chat agent's tool definitions do not:
+
+- **Pages, not dumps.** `getDevices()` answers with every capability value of all 84 devices. The
+  list tools answer `{total, count, offset, limit, has_more, next_offset, items}` with summaries, and
+  `homey_get_device` is what reports values.
+- **Zone paths.** A device's `zone` is a UUID, and two rooms here are both called Kontor — one per
+  floor. Every answer carries the full path, `Svinninge > Övervåning > Kontor`.
+- **Advanced flows.** Half of this house's flows are advanced, and `manager/flow/flow/` lists none of
+  them. `homey_list_flows` asks both endpoints and says which kind each flow is, and `homey_run_flow`
+  triggers it through the matching one.
+
+`homey_set_capability` and `homey_run_flow` are annotated `destructive` on purpose: they unlock doors
+and switch off sockets, so a client should ask before calling them.
+
+### Evaluation
+
+`evaluations/homey_eval.xml` holds ten questions in the format Anthropic's MCP skill prescribes,
+answered with read-only tools against the Homey in Svinninge on 2026-09-20. Re-measure after a
+reorganisation of zones, devices or flows.
 
 ## OAuth2 Flow
 
