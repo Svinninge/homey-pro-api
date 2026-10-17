@@ -34,10 +34,14 @@ TypeScript client, web chat UI, and Claude AI agent for controlling a Homey Pro 
 
 ## Docker Deployment
 
-- Tailscale sidecar container required (see `docker-compose.yml`)
-- `homey-chat` shares Tailscale network via `network_mode: "service:tailscale"`
-- Uses `TS_USERSPACE=true` for Docker Desktop on Windows
-- Versioning: See global rules at `C:\Users\perno\OneDrive\Dokument\Claude\memory\versioning_rules.md`
+- **Always deploy with the Tailscale sidecar container** (see `docker-compose.yml`); the app is
+  reached only through Tailscale, so no public port mapping is needed.
+- `homey-chat` shares the sidecar's network via `network_mode: "service:tailscale"` (Tailscale
+  hostname `homey-chat`).
+- Uses `TS_USERSPACE=true` for Docker Desktop on Windows (no `/dev/net/tun` there).
+- HTTPS: Tailscale Serve proxies 443 to the app's port 3000 (`tailscale-serve.json`).
+- `TS_AUTHKEY` and `BASE_URL` live only in `.env.local`, never in tracked files.
+- Versioning: the maintainer's global versioning rules (project tag, file headers, `version.json`).
 
 ## Secrets
 
@@ -72,6 +76,18 @@ TypeScript client, web chat UI, and Claude AI agent for controlling a Homey Pro 
   lazily, so `tools/list` works without tokens on disk.
 - Advanced-flow triggering is implemented against `manager/flow/advancedflow/:id/trigger` but has not
   been confirmed against the real Homey yet — verify before relying on it.
+
+## Which Homey token to use
+
+| Type | Lifetime | Fits |
+|---|---|---|
+| OAuth2 session (this repo's flow: cloud token → delegation JWT → session) | about 1 h; renewing needs a browser login | server apps with a user in front of them |
+| **API key** (my.homey.app → Settings → API Keys) | permanent, no refresh | embedded clients (ESP32), scheduled jobs |
+
+Scopes for device control: `homey.device.readonly` + `homey.device.control`. The local API is plain
+HTTP with `Authorization: Bearer <token>`; `GET /api/manager/system/ping` answers without auth. The
+endpoint reference is `HomeyAPIV3Local.json` in the npm package `homey-api` — look it up there instead
+of guessing. When the OAuth refresh answers `invalid_grant`, a new browser login is needed.
 
 ## Conventions
 
