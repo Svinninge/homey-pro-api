@@ -225,9 +225,11 @@ The Homey API uses a 3-step token chain:
 ```
 1. Browser login → Authorization Code
 2. Code → Cloud Access Token + Refresh Token  (api.athom.com/oauth2/token)
-3. Cloud Token → Delegation JWT               (api.athom.com/delegation/token)
+3. Cloud Token → Delegation JWT               (api.athom.com/delegation/token?audience=homey&homeyId=…)
 4. Delegation JWT → Homey Session Token        (homey-local-ip/api/manager/users/login)
 ```
+
+The delegation JWT is bound to one Homey: `homeyId` comes from the `X-Homey-ID` header of the local ping (`/api/manager/system/ping`), with `/user/me` as a fallback when the account has a single Homey. Athom will reject unbound token requests in the future.
 
 The session token is used for all local API calls. When tokens expire, they refresh automatically via the stored refresh token.
 
