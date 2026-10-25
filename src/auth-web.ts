@@ -31,7 +31,7 @@ export async function exchangeCodeForSession(
   homeyAddress: string
 ): Promise<StoredTokens> {
   const cloudTokens = await exchangeCodeForTokens(config, code, redirectUri);
-  const delegationJwt = await getDelegationToken(cloudTokens.accessToken);
+  const delegationJwt = await getDelegationToken(cloudTokens.accessToken, homeyAddress);
   const sessionToken = await createHomeySession(homeyAddress, delegationJwt);
 
   const tokens: StoredTokens = {

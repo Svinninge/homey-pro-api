@@ -41,7 +41,7 @@ export async function authorize(
 
   // Step 3: Get delegation token
   console.log("🔄 Getting delegation token...");
-  const delegationJwt = await getDelegationToken(cloudTokens.accessToken);
+  const delegationJwt = await getDelegationToken(cloudTokens.accessToken, homeyAddress);
   console.log("✅ Delegation token obtained.\n");
 
   // Step 4: Create Homey session
@@ -94,7 +94,7 @@ export async function getValidSession(
   }
 
   // Get new delegation + session
-  const delegationJwt = await getDelegationToken(accessToken);
+  const delegationJwt = await getDelegationToken(accessToken, homeyAddress);
   const sessionToken = await createHomeySession(homeyAddress, delegationJwt);
 
   tokens.sessionToken = sessionToken;
@@ -106,7 +106,7 @@ export async function getValidSession(
 
 // ── Exported helpers (reused by auth-web.ts) ─────────────────
 
-export { exchangeCodeForTokens, getDelegationToken, createHomeySession, refreshAccessToken };
+export { exchangeCodeForTokens, getHomeyId, getDelegationToken, createHomeySession, refreshAccessToken };
 
 // ── Internal helpers ──────────────────────────────────────────
 
@@ -250,10 +250,60 @@ async function refreshAccessToken(
   };
 }
 
-/** Get a delegation JWT for the Homey */
-async function getDelegationToken(accessToken: string): Promise<string> {
+/**
+ * Find the cloud id of the Homey at homeyAddress.
+ *
+ * The local ping answers without auth and names the Homey in X-Homey-ID, so the
+ * id always belongs to the Homey we sign in to. If the header is missing, fall
+ * back to /user/me, but only when the account has exactly one Homey.
+ */
+async function getHomeyId(
+  homeyAddress: string,
+  accessToken: string
+): Promise<string> {
+  const baseUrl = homeyAddress.replace(/\/+$/, "");
+  const ping = await fetch(`${baseUrl}/api/manager/system/ping`);
+  const headerId = ping.headers.get("x-homey-id");
+  if (headerId) return headerId;
+
+  const res = await fetch(`${ATHOM_BASE}/user/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`User lookup failed (${res.status}): ${body}`);
+  }
+
+  const user = (await res.json()) as {
+    homeys?: Array<{ _id: string; name?: string }>;
+  };
+  const homeys = user.homeys ?? [];
+  if (homeys.length === 1) return homeys[0]._id;
+
+  const names = homeys.map((h) => `${h.name ?? "?"} (${h._id})`).join(", ");
+  throw new Error(
+    `Cannot tell which Homey is at ${homeyAddress}: no X-Homey-ID from ping, ` +
+      `and the account has ${homeys.length} Homeys${names ? `: ${names}` : ""}`
+  );
+}
+
+/**
+ * Get a delegation JWT bound to the Homey at homeyAddress.
+ *
+ * Athom binds the token to one Homey when homeyId is passed (homey-api v3.21.0
+ * does the same) and will reject unbound requests in the future.
+ */
+async function getDelegationToken(
+  accessToken: string,
+  homeyAddress: string
+): Promise<string> {
+  const homeyId = await getHomeyId(homeyAddress, accessToken);
+  const url = new URL(`${ATHOM_BASE}/delegation/token`);
+  url.searchParams.set("audience", "homey");
+  url.searchParams.set("homeyId", homeyId);
+
   const res = await fetch(
-    `${ATHOM_BASE}/delegation/token?audience=homey`,
+    url,
     {
       method: "POST",
       headers: {
